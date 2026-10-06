@@ -1,0 +1,7 @@
+# ambiente Python (recriado com requirements.txt)
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# sistema
+.DS_Store

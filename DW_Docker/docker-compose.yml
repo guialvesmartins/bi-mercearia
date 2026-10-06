@@ -1,0 +1,48 @@
+# Trabalho 2 — Clusterização de clientes + Regras de Associação
+#   db   -> PostgreSQL com 3 bancos: northwind (fonte), mercearia (fonte), dw (DW + DataMarts)
+#   etl  -> executa DDL + ETL (SQL/psql) do DW e dos DataMarts (inclui o dm_crm, da Mercearia)
+# A análise (K-Means + Apriori) fica no notebook ../notebook/, que lê o dm_crm.
+name: bi_trabalho2
+
+services:
+  db:
+    image: postgres:16
+    container_name: t2_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./fontes/00_init_fontes.sh:/docker-entrypoint-initdb.d/00_init_fontes.sh:ro
+      - "../Scripts BD:/scripts_bd:ro"
+      - ./fontes:/fontes:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dw"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  etl:
+    image: postgres:16
+    container_name: t2_etl
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: dw
+      LGPD_SALT: ${LGPD_SALT:-troque-este-salt}
+      DATA_CARGA: ${DATA_CARGA:-}
+      PGOPTIONS: "-c client_min_messages=warning"
+    volumes:
+      - ./ddl:/ddl:ro
+      - ./etl:/etl:ro
+      - ./dados_externos:/dados_externos:ro
+    entrypoint: ["bash", "/etl/run_etl.sh"]
+
+volumes:
+  pgdata:

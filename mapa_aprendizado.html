@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de aprendizado — Clusterização e Regras de Associação</title>
+<meta name="description" content="Guia interativo, em nove etapas, do trabalho de clusterização de clientes e regras de associação da base Mercearia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --papel: #FCFCFA;
+    --nota: #F3F2ED;
+    --tinta: #222222;
+    --tinta-2: #4D4D4D;
+    --suave: #6E6E6E;
+    --linha: #C8C5BD;
+    --marinho: #1F3A5F;
+    --vinho: #7A2E2E;
+    --ouro: #A8862F;
+    --cinza-ponto: #9A968C;
+    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --sans: 'Source Sans 3', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--papel); color: var(--tinta); font: 18px/1.6 var(--sans); }
+  a { color: var(--marinho); }
+  a:hover { color: var(--vinho); }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--marinho); outline-offset: 3px; }
+
+  .pagina { max-width: 860px; margin: 0 auto; padding: 56px 20px 80px; }
+
+  /* topo */
+  .eyebrow { margin: 0 0 6px; font-size: 14px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--marinho); }
+  h1 { margin: 0; font: 600 44px/1.15 var(--serif); color: var(--marinho); }
+  .sub { margin: 12px 0 0; color: var(--tinta-2); max-width: 680px; }
+  .ideia { margin: 28px 0 0; padding: 14px 0; border-top: 2px solid var(--marinho); border-bottom: 1px solid var(--linha);
+           font: italic 500 22px/1.4 var(--serif); color: var(--marinho); }
+
+  .progresso { position: sticky; top: 0; z-index: 2; background: var(--papel); margin: 28px 0 8px; padding: 12px 0; border-bottom: 1px solid var(--linha);
+               display: flex; align-items: center; gap: 16px; }
+  .barra { flex: 1; height: 8px; background: var(--nota); border: 1px solid var(--linha); }
+  .barra span { display: block; height: 100%; width: 0; background: var(--marinho); transition: width .4s ease; }
+  .progresso p { margin: 0; font-size: 15px; color: var(--tinta-2); min-width: 150px; text-align: right; }
+  .progresso button { background: none; border: 0; padding: 0; font-size: 15px; color: var(--suave); text-decoration: underline; cursor: pointer; }
+
+  /* trilha */
+  .trilha { list-style: none; margin: 24px 0 0 22px; padding: 0; border-left: 1px solid var(--linha); }
+  .etapa { position: relative; }
+  .cabeca { width: 100%; display: flex; align-items: center; gap: 18px; padding: 18px 0 18px 0; margin-left: -23px;
+            background: none; border: 0; border-bottom: 1px solid var(--linha); text-align: left; cursor: pointer; }
+  .num { flex: none; width: 46px; height: 46px; display: grid; place-items: center; background: var(--papel);
+         border: 1px solid var(--marinho); font: 600 18px/1 var(--serif); color: var(--marinho); transition: background .25s, color .25s; }
+  .etapa.ok .num { background: var(--marinho); color: var(--papel); }
+  .titulos { flex: 1; display: flex; flex-direction: column; }
+  .titulo { font: 600 24px/1.25 var(--serif); color: var(--tinta); }
+  .resumo { font-size: 16px; color: var(--suave); }
+  .status { flex: none; font-size: 14px; color: var(--marinho); font-weight: 600; min-width: 84px; text-align: right; }
+  .seta { flex: none; width: 12px; height: 12px; border-right: 2px solid var(--suave); border-bottom: 2px solid var(--suave);
+          transform: rotate(45deg); transition: transform .25s; margin-right: 4px; }
+  .cabeca[aria-expanded="true"] .seta { transform: rotate(225deg); }
+  .cabeca:hover .titulo { color: var(--marinho); }
+
+  .corpo { padding: 22px 0 30px 40px; border-bottom: 1px solid var(--linha); }
+  .corpo > p { margin: 0 0 14px; }
+  .corpo h3 { margin: 22px 0 8px; font: 600 19px/1.3 var(--serif); color: var(--marinho); }
+  .exemplo { margin: 16px 0; padding: 4px 0 4px 18px; border-left: 3px solid var(--marinho); color: var(--tinta-2); }
+  .exemplo strong { color: var(--tinta); }
+  .lista { margin: 0 0 14px; padding-left: 22px; }
+  .lista li { margin: 4px 0; }
+  .fluxo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 10px 0 16px; font-family: var(--serif); font-size: 19px; color: var(--marinho); }
+  .fluxo .sep { color: var(--suave); }
+  .numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; border-top: 1px solid var(--linha); padding-top: 12px; }
+  .numeros b { display: block; font: 600 30px/1.1 var(--serif); color: var(--marinho); }
+  .numeros span { font-size: 15px; color: var(--tinta-2); }
+  .formula { margin: 14px 0; font: 500 24px/1.3 var(--serif); color: var(--marinho); }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 16px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+  th { font-weight: 600; color: var(--tinta-2); border-bottom: 1.5px solid var(--tinta-2); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* animação de agrupamento */
+  .demo { margin: 16px 0; border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); padding: 14px 0; }
+  .demo svg { display: block; width: 100%; height: auto; }
+  .demo circle.p { transition: transform .9s ease, fill .9s ease; }
+  .demo ellipse { fill: none; stroke: var(--cinza-ponto); stroke-width: 1.5; stroke-dasharray: 6 5; opacity: 0; transition: opacity .6s ease .6s; }
+  .demo.agrupado ellipse { opacity: 1; }
+  .demo-rodape { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+  .demo-rodape p { margin: 0; font-size: 15px; color: var(--tinta-2); }
+
+  .botao { background: var(--papel); border: 1px solid var(--marinho); color: var(--marinho); padding: 8px 16px; cursor: pointer; font-weight: 600; font-size: 16px; }
+  .botao:hover { background: var(--marinho); color: var(--papel); }
+
+  /* barras da silhueta */
+  .barras { margin: 12px 0 8px; }
+  .barras .linha { display: grid; grid-template-columns: 60px 1fr 150px; align-items: center; gap: 12px; padding: 4px 0; font-size: 16px; }
+  .barras .trilho { height: 18px; }
+  .barras .valor { display: block; height: 100%; background: #B8B4AA; }
+  .barras .escolhido { font-weight: 700; color: var(--marinho); }
+  .barras .escolhido .valor { background: var(--marinho); }
+
+  /* calculadora */
+  .calc { margin: 16px 0; border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); padding: 14px 0; }
+  .calc-campos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .calc label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--tinta-2); }
+  .calc input { font: 600 20px/1.2 var(--serif); color: var(--tinta); background: var(--papel); border: 1px solid var(--linha); padding: 6px 8px; width: 100%; }
+  .calc-saida { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  .calc-saida b { display: block; font: 600 30px/1.1 var(--serif); color: var(--marinho); }
+  .calc-saida span { font-size: 14px; color: var(--tinta-2); }
+  .calc-leitura { margin: 12px 0 0; font-size: 16px; color: var(--tinta-2); }
+
+  /* pergunta rápida */
+  .quiz { margin: 22px 0 6px; padding: 14px 0 4px; border-top: 1px dashed var(--linha); }
+  .quiz .pergunta { margin: 0 0 10px; font-weight: 600; }
+  .quiz .rotulo { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--suave); margin: 0 0 4px; }
+  .opcoes { display: flex; flex-direction: column; gap: 8px; }
+  .opcoes button { text-align: left; background: var(--papel); border: 1px solid var(--linha); padding: 10px 14px; cursor: pointer; font-size: 16px; }
+  .opcoes button:hover { border-color: var(--marinho); }
+  .opcoes button.certa { border-color: var(--marinho); background: var(--marinho); color: var(--papel); }
+  .opcoes button.errada { border-color: var(--vinho); color: var(--vinho); text-decoration: line-through; }
+  .retorno { margin: 10px 0 0; font-size: 16px; min-height: 1.6em; }
+  .retorno.ok { color: var(--marinho); }
+  .retorno.nao { color: var(--vinho); }
+
+  .rodape-etapa { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; }
+  .no-projeto { margin: 0; font-size: 15px; color: var(--suave); }
+
+  .fim { margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--marinho); }
+  .fim h2 { margin: 0 0 8px; font: 600 26px/1.3 var(--serif); color: var(--marinho); }
+  .fim p { margin: 0 0 10px; color: var(--tinta-2); }
+  .parabens { display: none; font: italic 500 20px/1.4 var(--serif); color: var(--marinho); }
+  .completo .parabens { display: block; }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 34px; }
+    .titulo { font-size: 20px; }
+    .status { display: none; }
+    .corpo { padding-left: 28px; }
+    .numeros, .calc-campos { grid-template-columns: repeat(2, 1fr); }
+    .calc-saida { grid-template-columns: 1fr; }
+    .barras .linha { grid-template-columns: 50px 1fr 110px; font-size: 15px; }
+    .progresso p { min-width: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header>
+  <p class="eyebrow">Tópicos 1 — Business Intelligence · Trabalho 2</p>
+  <h1>Mapa de aprendizado</h1>
+  <p class="sub">Clusterização de clientes e Regras de Associação na base Mercearia. São nove etapas, do problema aos resultados: abra cada uma, leia e responda a pergunta rápida. Acertou, a etapa fica marcada.</p>
+  <p class="ideia">Segmentar primeiro, associar depois.</p>
+</header>
+
+<div class="progresso" aria-label="Progresso">
+  <div class="barra"><span id="barra"></span></div>
+  <p id="progresso-texto">0 de 9 etapas</p>
+  <button type="button" id="recomecar">recomeçar</button>
+</div>
+
+<ol class="trilha">
+
+<!-- 1 -->
+<li class="etapa" data-etapa="1">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">01</span>
+    <span class="titulos"><span class="titulo">O problema</span><span class="resumo">Por que não olhar todas as vendas de uma vez</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>Uma mercearia quer saber <strong>o que oferecer a cada cliente</strong>. A técnica clássica para isso são as regras de associação ("quem leva A também leva B").</p>
+    <p>Mas, olhando todas as vendas juntas, o cliente que compra pão todo dia — <strong>58% das compras</strong> — domina o resultado e esconde os padrões dos outros clientes, como o de quem faz a compra do mês.</p>
+    <div class="exemplo">A saída é combinar duas técnicas (<strong>ensemble</strong>): primeiro <strong>agrupar os clientes</strong> pelo jeito de comprar; depois <strong>procurar as regras dentro de cada grupo</strong>.</div>
+    <div class="quiz" data-certa="b" data-explica="Quando tudo é misturado, o cliente mais comum domina e os padrões dos grupos menores somem.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Por que não buscar as regras direto em todas as vendas?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">Porque o algoritmo não aceita muitas vendas</button>
+        <button type="button" data-op="b">Porque o cliente mais comum domina e esconde os padrões dos outros</button>
+        <button type="button" data-op="c">Porque as vendas precisam estar em ordem de data</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="relatorio/RELATORIO_TECNICO.pdf">relatório, seção 1</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 2 -->
+<li class="etapa" data-etapa="2">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">02</span>
+    <span class="titulos"><span class="titulo">Os dados</span><span class="resumo">Do DW ao DataMart construído para a análise</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <div class="fluxo"><span>Base Mercearia</span><span class="sep">→</span><span>DW Organizacional</span><span class="sep">→</span><span>DataMart dm_crm</span><span class="sep">→</span><span>Notebook Python</span></div>
+    <p>O DataMart <strong>dm_crm</strong> tem duas tabelas principais: a <strong>cesta</strong> de cada compra (os produtos de cada cupom, usados nas regras) e o <strong>RFM</strong> de cada cliente (usado no agrupamento).</p>
+    <div class="numeros">
+      <div><b>149</b><span>clientes</span></div>
+      <div><b>19.638</b><span>compras (cupons)</span></div>
+      <div><b>30</b><span>produtos</span></div>
+      <div><b>2 anos</b><span>out/2024 a set/2026</span></div>
+    </div>
+    <p>Dois cuidados: o movimento original era <strong>aleatório</strong> (sem nenhum padrão de cesta), por isso o banco foi <strong>repovoado com 5 perfis de compra</strong> (dados simulados). E a <strong>Northwind ficou de fora</strong>: é B2B e os pedidos quase não repetem combinações — o par de produtos mais comum aparece em só 1% dos pedidos.</p>
+    <div class="quiz" data-certa="a" data-explica="Com produtos sorteados ao acaso, nenhuma regra teria lift acima de 1. Os perfis criam padrões reais para a técnica encontrar.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Por que a base Mercearia foi repovoada?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">O movimento original era aleatório, sem padrão de cesta</button>
+        <button type="button" data-op="b">Faltavam clientes cadastrados</button>
+        <button type="button" data-op="c">Para o banco ficar mais leve</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="DW_Docker/fontes/02_mercearia_movimento.sql">povoamento</a> · <a href="DW_Docker/ddl/03_dm_crm.sql">DataMart</a> · <a href="DW_Docker/etl/07_dm_crm.sql">carga</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 3 -->
+<li class="etapa" data-etapa="3">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">03</span>
+    <span class="titulos"><span class="titulo">O que é clusterizar</span><span class="resumo">Separar clientes em grupos, sem dizer antes quais são</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>Clusterizar é <strong>separar os clientes em grupos de forma automática</strong>, juntando quem compra de jeito parecido. Ninguém diz ao algoritmo quais grupos existem: ele descobre sozinho, olhando a semelhança entre os clientes (aprendizado <strong>não supervisionado</strong>).</p>
+    <div class="demo" id="demo">
+      <svg viewBox="0 0 520 240" role="img" aria-labelledby="demo-titulo">
+        <title id="demo-titulo">Pontos representando clientes: misturados, ou separados em três grupos de clientes parecidos</title>
+        <ellipse cx="115" cy="115" rx="62" ry="50"/>
+        <ellipse cx="285" cy="105" rx="60" ry="50"/>
+        <ellipse cx="437" cy="128" rx="60" ry="52"/>
+        <g id="pontos"></g>
+      </svg>
+      <div class="demo-rodape">
+        <p id="demo-legenda">Clientes misturados: ainda não sabemos quem se parece com quem.</p>
+        <button type="button" class="botao" id="demo-botao">Agrupar clientes</button>
+      </div>
+    </div>
+    <div class="quiz" data-certa="b" data-explica="Os grupos saem dos próprios dados: o algoritmo junta quem está próximo.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Na clusterização, quem define os grupos?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">O analista, antes de rodar o modelo</button>
+        <button type="button" data-op="b">O algoritmo, pela semelhança entre os clientes</button>
+        <button type="button" data-op="c">O cadastro do cliente no sistema</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="notebook/clusterizacao_regras.ipynb">notebook, seção 3</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 4 -->
+<li class="etapa" data-etapa="4">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">04</span>
+    <span class="titulos"><span class="titulo">RFM</span><span class="resumo">Três números que descrevem como o cliente compra</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>Para agrupar, cada cliente vira três números — a forma clássica de descrever clientes em CRM:</p>
+    <table>
+      <tr><th></th><th>Pergunta</th><th>No nosso trabalho</th></tr>
+      <tr><td><strong>R</strong>ecência</td><td>Há quantos dias foi a última compra?</td><td>dias desde a última compra</td></tr>
+      <tr><td><strong>F</strong>requência</td><td>Quantas vezes comprou?</td><td>nº de cupons</td></tr>
+      <tr><td><strong>M</strong>onetário</td><td>Quanto gasta?</td><td>ticket médio (valor por compra)</td></tr>
+    </table>
+    <div class="exemplo">Um cliente do grupo <strong>Diários</strong>: última compra há 1 dia, 383 compras, ticket médio de R$ 50.</div>
+    <div class="quiz" data-certa="a" data-explica="O valor total é praticamente frequência × ticket. Usando o ticket médio, cada variável traz uma informação diferente.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Por que usamos o ticket médio como M, e não o valor total gasto?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">Porque o valor total é quase F × ticket e repetiria a frequência</button>
+        <button type="button" data-op="b">Porque o valor total não existe no DW</button>
+        <button type="button" data-op="c">Para os números ficarem menores</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="DW_Docker/etl/07_dm_crm.sql">cálculo do RFM (fato_cliente_rfm)</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 5 -->
+<li class="etapa" data-etapa="5">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">05</span>
+    <span class="titulos"><span class="titulo">K-Means</span><span class="resumo">O algoritmo que junta os clientes parecidos</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>O K-Means funciona em três passos, repetidos até nada mudar:</p>
+    <ol class="lista">
+      <li>escolhe <strong>k centros</strong> (um por grupo);</li>
+      <li>cada cliente vai para o <strong>centro mais próximo</strong>;</li>
+      <li>cada centro se move para o <strong>meio do seu grupo</strong>.</li>
+    </ol>
+    <p>Como ele mede distância, antes ajustamos as escalas: <strong>raiz quadrada</strong> na recência e <strong>logaritmo</strong> na frequência e no ticket (para reduzir a assimetria) e depois <strong>padronização</strong> (média 0, desvio 1). Sem isso, a variável com números maiores mandaria sozinha na distância.</p>
+    <div class="quiz" data-certa="a" data-explica="Frequência vai até centenas e ticket até ~R$ 180: sem padronizar, a escala maior dominaria o agrupamento.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Por que padronizar R, F e M antes do K-Means?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">Para nenhuma variável dominar a distância só por ter escala maior</button>
+        <button type="button" data-op="b">Para o algoritmo rodar mais rápido</button>
+        <button type="button" data-op="c">Porque o K-Means só aceita valores inteiros</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="notebook/clusterizacao_regras.ipynb">notebook, seções 2 e 3</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 6 -->
+<li class="etapa" data-etapa="6">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">06</span>
+    <span class="titulos"><span class="titulo">Silhueta</span><span class="resumo">Como decidimos usar 5 grupos</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>O K-Means precisa saber quantos grupos (k) criar. Para escolher, usamos a <strong>silhueta</strong>, que compara, para cada cliente:</p>
+    <ul class="lista">
+      <li><strong>a</strong> — a distância média até os clientes do <strong>próprio grupo</strong>;</li>
+      <li><strong>b</strong> — a distância média até o <strong>grupo vizinho</strong> mais próximo.</li>
+    </ul>
+    <p class="formula">silhueta = (b − a) ÷ maior(a, b)</p>
+    <p>Perto de <strong>1</strong>: bem encaixado. Perto de <strong>0</strong>: na fronteira. <strong>Negativa</strong>: provavelmente no grupo errado. A nota do modelo é a média de todos os clientes.</p>
+    <h3>Silhueta de cada teste</h3>
+    <div class="barras" id="barras"></div>
+    <p>Com <strong>5 grupos</strong> veio a maior silhueta. Com 2 ficou quase igual, mas o modelo só separaria clientes ativos de inativos — pouco útil para o marketing.</p>
+    <div class="quiz" data-certa="b" data-explica="Silhueta negativa quer dizer que o cliente está mais perto do grupo vizinho do que do próprio grupo.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Um cliente com silhueta negativa está…</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">muito bem encaixado no grupo</button>
+        <button type="button" data-op="b">provavelmente no grupo errado</button>
+        <button type="button" data-op="c">exatamente no centro do grupo</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="relatorio/figuras/escolha_k.png">gráfico do cotovelo e da silhueta</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 7 -->
+<li class="etapa" data-etapa="7">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">07</span>
+    <span class="titulos"><span class="titulo">Regras de associação</span><span class="resumo">Quem leva A também leva B? Suporte, confiança e lift</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>Uma regra <strong>A → B</strong> é avaliada por três números:</p>
+    <ul class="lista">
+      <li><strong>Suporte</strong> — em quantas cestas A e B aparecem juntos (a regra é comum?);</li>
+      <li><strong>Confiança</strong> — de quem leva A, quantos também levam B (a regra é confiável?);</li>
+      <li><strong>Lift</strong> — quantas vezes isso acontece mais do que o acaso (1 = acaso).</li>
+    </ul>
+    <div class="exemplo">No grupo <strong>Diários</strong>: <strong>Presunto → Pão francês</strong> tem suporte de 33%, confiança de 90% e lift de 1,6.</div>
+    <h3>Calcule você mesmo</h3>
+    <div class="calc" id="calc">
+      <div class="calc-campos">
+        <label>Total de cestas<input type="number" id="c-total" min="1" value="100"></label>
+        <label>Cestas com A<input type="number" id="c-a" min="0" value="37"></label>
+        <label>Cestas com B<input type="number" id="c-b" min="0" value="56"></label>
+        <label>Com A e B juntos<input type="number" id="c-ab" min="0" value="33"></label>
+      </div>
+      <div class="calc-saida">
+        <div><b id="r-sup">—</b><span>suporte</span></div>
+        <div><b id="r-conf">—</b><span>confiança (A → B)</span></div>
+        <div><b id="r-lift">—</b><span>lift</span></div>
+      </div>
+      <p class="calc-leitura" id="r-leitura" aria-live="polite"></p>
+    </div>
+    <div class="quiz" data-certa="b" data-explica="Lift 1 é exatamente o que se esperaria por acaso. Associação de verdade é lift claramente acima de 1 (usamos 1,2).">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Uma regra com lift = 1 significa…</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">associação perfeita entre os produtos</button>
+        <button type="button" data-op="b">que os produtos aparecem juntos só por acaso</button>
+        <button type="button" data-op="c">que a regra aparece em 1% das cestas</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="notebook/clusterizacao_regras.ipynb">notebook, seção 2</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 8 -->
+<li class="etapa" data-etapa="8">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">08</span>
+    <span class="titulos"><span class="titulo">Apriori por grupo</span><span class="resumo">O que a segmentação revelou</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <p>O algoritmo <strong>Apriori</strong> acha os produtos que aparecem juntos com frequência e gera as regras. Rodamos com os mesmos filtros (suporte ≥ 5%, confiança ≥ 40%, lift ≥ 1,2, pares A → B) <strong>na base inteira</strong> e <strong>em cada grupo</strong>:</p>
+    <div class="numeros">
+      <div><b>17</b><span>regras na base inteira (11 só do café da manhã)</span></div>
+      <div><b>31</b><span>regras dentro dos grupos</span></div>
+      <div><b style="color:var(--vinho)">18</b><span>só aparecem segmentando</span></div>
+      <div><b>4</b><span>regras falsas na base inteira</span></div>
+    </div>
+    <div class="exemplo"><strong>O mesmo produto muda de parceiro:</strong> o leite vai com café e pão nos Diários, mas com fralda e sabonete nos Frequentes. A regra "banana → pão" aparece na base inteira, mas some dentro dos grupos: os dois produtos são do mesmo tipo de cliente, não da mesma cesta.</div>
+    <div class="quiz" data-certa="a" data-explica="Misturar grupos cria associações aparentes: produtos do mesmo tipo de cliente parecem andar juntos mesmo sem dividir a cesta.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Por que "banana → pão" é uma regra falsa?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">Os dois são comprados pelo mesmo tipo de cliente, mas não na mesma cesta</button>
+        <button type="button" data-op="b">Banana e pão são da mesma categoria de produto</button>
+        <button type="button" data-op="c">A regra tem suporte muito alto</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="notebook/clusterizacao_regras.ipynb">notebook, seção 4</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+<!-- 9 -->
+<li class="etapa" data-etapa="9">
+  <button type="button" class="cabeca" aria-expanded="false">
+    <span class="num">09</span>
+    <span class="titulos"><span class="titulo">Resultados e ações</span><span class="resumo">Cinco grupos, cada um com sua oferta</span></span>
+    <span class="status"></span><span class="seta" aria-hidden="true"></span>
+  </button>
+  <div class="corpo" hidden>
+    <table>
+      <tr><th>Grupo</th><th class="n">Compras</th><th class="n">Ticket</th><th class="n">% receita</th><th>Compram juntos</th><th>Ação</th></tr>
+      <tr><td><strong>Diários</strong></td><td class="n">383</td><td class="n">R$ 50</td><td class="n">39,5%</td><td>pão, presunto, café</td><td>combo café da manhã</td></tr>
+      <tr><td><strong>Frequentes</strong></td><td class="n">162,5</td><td class="n">R$ 84</td><td class="n">29,3%</td><td>fralda, leite, lanches</td><td>kit bebê e lanche</td></tr>
+      <tr><td><strong>Semanais</strong></td><td class="n">83</td><td class="n">R$ 132</td><td class="n">22,1%</td><td>picanha, sal, cerveja</td><td>kit churrasco às sextas</td></tr>
+      <tr><td><strong>Mensais</strong></td><td class="n">24,5</td><td class="n">R$ 163</td><td class="n">8,6%</td><td>massas, molho, limpeza</td><td>lista do mês com delivery</td></tr>
+      <tr><td><strong>Inativos</strong></td><td class="n">7</td><td class="n">R$ 33</td><td class="n">0,5%</td><td>sem padrão</td><td>cupom de retorno</td></tr>
+    </table>
+    <p>Validação: os dados foram simulados com perfis conhecidos, e <strong>100% dos clientes</strong> caíram no grupo do seu perfil — sem o modelo nunca ter visto o perfil. Em dados reais, as fronteiras seriam mais difusas.</p>
+    <div class="quiz" data-certa="c" data-explica="O agrupamento (RFM) descreve o comportamento; as regras revelam o conteúdo da cesta. Juntos, dizem o que oferecer e para quem.">
+      <p class="rotulo">Pergunta rápida</p>
+      <p class="pergunta">Qual frase resume o trabalho?</p>
+      <div class="opcoes">
+        <button type="button" data-op="a">O K-Means descobre quais produtos são comprados juntos</button>
+        <button type="button" data-op="b">As regras de associação dividem os clientes em grupos</button>
+        <button type="button" data-op="c">O RFM diz como o cliente compra; as regras dizem o que ele compra</button>
+      </div>
+      <p class="retorno" aria-live="polite"></p>
+    </div>
+    <div class="rodape-etapa">
+      <p class="no-projeto">No projeto: <a href="relatorio/RELATORIO_TECNICO.pdf">relatório, seção 5</a></p>
+      <button type="button" class="botao entendi">Marcar como entendido</button>
+    </div>
+  </div>
+</li>
+
+</ol>
+
+<section class="fim" id="fim">
+  <p class="parabens">Mapa completo — pronto para apresentar.</p>
+  <h2>Para ir além</h2>
+  <p><a href="relatorio/RELATORIO_TECNICO.pdf">Relatório técnico (PDF)</a> · <a href="notebook/clusterizacao_regras.ipynb">Notebook com o código</a> · <a href="README.md">Como executar</a></p>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var TOTAL = 9;
+  var CHAVE = 'mapa-bi-mercearia';
+  var etapas = Array.prototype.slice.call(document.querySelectorAll('.etapa'));
+
+  // ---------- progresso (salvo no navegador quando possível) ----------
+  var feitas = {};
+  try { feitas = JSON.parse(localStorage.getItem(CHAVE) || '{}') || {}; } catch (e) { feitas = {}; }
+
+  function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(feitas)); } catch (e) {} }
+
+  function atualizar() {
+    var n = 0;
+    etapas.forEach(function (li) {
+      var id = li.dataset.etapa, ok = !!feitas[id];
+      li.classList.toggle('ok', ok);
+      li.querySelector('.status').textContent = ok ? 'entendido' : '';
+      li.querySelector('.entendi').textContent = ok ? 'Desmarcar' : 'Marcar como entendido';
+      if (ok) n++;
+    });
+    document.getElementById('barra').style.width = (100 * n / TOTAL) + '%';
+    document.getElementById('progresso-texto').textContent = n + ' de ' + TOTAL + ' etapas';
+    document.getElementById('fim').classList.toggle('completo', n === TOTAL);
+  }
+
+  function marcar(id, valor) { if (valor) feitas[id] = true; else delete feitas[id]; salvar(); atualizar(); }
+
+  // ---------- abrir / fechar etapas ----------
+  etapas.forEach(function (li) {
+    var cabeca = li.querySelector('.cabeca'), corpo = li.querySelector('.corpo');
+    cabeca.addEventListener('click', function () {
+      var abrir = cabeca.getAttribute('aria-expanded') !== 'true';
+      cabeca.setAttribute('aria-expanded', abrir);
+      corpo.hidden = !abrir;
+    });
+    li.querySelector('.entendi').addEventListener('click', function () {
+      marcar(li.dataset.etapa, !feitas[li.dataset.etapa]);
+    });
+  });
+
+  // ---------- perguntas rápidas ----------
+  document.querySelectorAll('.quiz').forEach(function (quiz) {
+    var certa = quiz.dataset.certa, retorno = quiz.querySelector('.retorno');
+    var li = quiz.closest('.etapa');
+    quiz.querySelectorAll('.opcoes button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.dataset.op === certa) {
+          quiz.querySelectorAll('.opcoes button').forEach(function (x) { x.classList.remove('errada'); });
+          b.classList.add('certa');
+          retorno.className = 'retorno ok';
+          retorno.textContent = 'Isso! ' + quiz.dataset.explica;
+          marcar(li.dataset.etapa, true);
+        } else {
+          b.classList.add('errada');
+          retorno.className = 'retorno nao';
+          retorno.textContent = 'Não é essa — tente outra.';
+        }
+      });
+    });
+  });
+
+  document.getElementById('recomecar').addEventListener('click', function () {
+    feitas = {}; salvar(); atualizar();
+    document.querySelectorAll('.opcoes button').forEach(function (b) { b.classList.remove('certa', 'errada'); });
+    document.querySelectorAll('.retorno').forEach(function (r) { r.textContent = ''; r.className = 'retorno'; });
+  });
+
+  // ---------- animação: agrupar clientes ----------
+  var CORES = ['#1F3A5F', '#7A2E2E', '#A8862F'];
+  var grupos = [
+    [[80,95],[110,80],[140,100],[90,135],[125,140],[150,126]],
+    [[250,85],[285,75],[312,100],[256,124],[290,134],[322,120]],
+    [[402,112],[436,96],[462,120],[408,150],[442,160],[472,144]]
+  ];
+  var misturados = [[60,190],[200,40],[420,60],[330,200],[150,60],[480,190],[260,170],[40,60],[380,150],
+                    [170,180],[300,40],[450,90],[100,140],[230,110],[360,90],[490,50],[130,210],[400,210]];
+  var NS = 'http://www.w3.org/2000/svg', alvo = document.getElementById('pontos'), pontos = [], k = 0;
+  grupos.forEach(function (g, gi) {
+    g.forEach(function (p) {
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('class', 'p'); c.setAttribute('cx', p[0]); c.setAttribute('cy', p[1]); c.setAttribute('r', 8);
+      var m = misturados[k++];
+      c.dataset.dx = m[0] - p[0]; c.dataset.dy = m[1] - p[1]; c.dataset.cor = CORES[gi];
+      alvo.appendChild(c); pontos.push(c);
+    });
+  });
+  var demo = document.getElementById('demo'), botao = document.getElementById('demo-botao'), legenda = document.getElementById('demo-legenda');
+  function desenhar(agrupado) {
+    demo.classList.toggle('agrupado', agrupado);
+    pontos.forEach(function (c) {
+      c.style.transform = agrupado ? 'translate(0px, 0px)' : 'translate(' + c.dataset.dx + 'px, ' + c.dataset.dy + 'px)';
+      c.style.fill = agrupado ? c.dataset.cor : '#9A968C';
+    });
+    botao.textContent = agrupado ? 'Misturar de novo' : 'Agrupar clientes';
+    legenda.textContent = agrupado
+      ? 'Agrupados: o algoritmo juntou quem se parece — três grupos, sem ninguém dizer antes quais eram.'
+      : 'Clientes misturados: ainda não sabemos quem se parece com quem.';
+  }
+  var estado = false;
+  desenhar(false);
+  botao.addEventListener('click', function () { estado = !estado; desenhar(estado); });
+
+  // ---------- barras da silhueta ----------
+  var silhuetas = [[2,0.675],[3,0.633],[4,0.622],[5,0.682],[6,0.594],[7,0.592],[8,0.588]];
+  var barras = document.getElementById('barras');
+  silhuetas.forEach(function (s) {
+    var escolhido = s[0] === 5;
+    var linha = document.createElement('div');
+    linha.className = 'linha' + (escolhido ? ' escolhido' : '');
+    linha.innerHTML = '<span>k = ' + s[0] + '</span>' +
+      '<span class="trilho"><span class="valor" style="width:' + (100 * s[1] / 0.7).toFixed(1) + '%"></span></span>' +
+      '<span>' + s[1].toFixed(3).replace('.', ',') + (escolhido ? ' · escolhido' : '') + '</span>';
+    barras.appendChild(linha);
+  });
+
+  // ---------- calculadora de suporte, confiança e lift ----------
+  var campos = ['c-total', 'c-a', 'c-b', 'c-ab'].map(function (id) { return document.getElementById(id); });
+  function pct(x) { return (100 * x).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '%'; }
+  function calcular() {
+    var t = +campos[0].value, a = +campos[1].value, b = +campos[2].value, ab = +campos[3].value;
+    var sup = document.getElementById('r-sup'), conf = document.getElementById('r-conf'),
+        lift = document.getElementById('r-lift'), leitura = document.getElementById('r-leitura');
+    if (!(t > 0) || a < 0 || b < 0 || ab < 0 || a > t || b > t || ab > Math.min(a, b) || a === 0 || b === 0) {
+      sup.textContent = conf.textContent = lift.textContent = '—';
+      leitura.textContent = 'Confira os números: A e B não podem passar do total, e "A e B juntos" não pode passar de A nem de B.';
+      return;
+    }
+    var s = ab / t, c = ab / a, l = c / (b / t);
+    sup.textContent = pct(s);
+    conf.textContent = pct(c);
+    lift.textContent = l.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var sentido = l >= 1.2 ? 'associação: B aparece com A mais do que o acaso explicaria.'
+               : l > 0.9 ? 'praticamente acaso: não há associação.'
+               : 'os produtos tendem a NÃO aparecer juntos.';
+    leitura.textContent = 'A e B estão juntos em ' + pct(s) + ' das cestas; ' + pct(c) + ' de quem leva A também leva B; lift ' +
+      l.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' = ' + sentido;
+  }
+  campos.forEach(function (c) { c.addEventListener('input', calcular); });
+  calcular();
+
+  atualizar();
+})();
+</script>
+</body>
+</html>
