@@ -35,3 +35,21 @@ etl/                     etapas do ETL (staging, tempo, IPCA, dimensões, fatos,
 fontes/                  preparação das bases de origem (inclui o povoamento com perfis)
 dados_externos/          IPCA (BCB/SGS 433)
 ```
+
+## Solução de problemas
+
+**No Windows, o `t2_db` sai com exit 127 e o log traz
+`00_init_fontes.sh: cannot execute: required file not found`.**
+
+Com `core.autocrlf=true`, o git converte os `.sh` para CRLF no checkout; o Docker
+monta o `\r` no Linux e o shebang vira `#!/bin/bash\r`. O repositório traz um
+`.gitattributes` (`*.sh text eol=lf`) para evitar isso — se a cópia local ainda
+estiver com CRLF, converta os scripts para LF e recrie o volume:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+O `down -v` é necessário porque o Postgres só executa `/docker-entrypoint-initdb.d`
+quando o diretório de dados está vazio.
