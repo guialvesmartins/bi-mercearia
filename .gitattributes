@@ -1,0 +1,5 @@
+# Scripts de shell precisam de terminação LF, sempre.
+# No Windows, sem isto o git (core.autocrlf=true) converte para CRLF no checkout,
+# e o Docker Desktop monta o arquivo com \r dentro do Linux: o shebang vira
+# "#!/bin/bash\r" e o container morre com "cannot execute: required file not found" (exit 127).
+*.sh text eol=lf
