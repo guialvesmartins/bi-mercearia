@@ -1,9 +1,15 @@
 ---
-title: "Relatório Técnico — Clusterização de Clientes e Regras de Associação"
-subtitle: "Tópicos 1 — Business Intelligence · Trabalho 2"
-date: "Outubro de 2026"
+pagetitle: "Relatório Técnico — Clusterização de Clientes e Regras de Associação"
 lang: pt-BR
 ---
+
+<header class="cabecalho">
+<p class="instituicao">Instituto Federal de Goiás (IFG)</p>
+<p class="programa">Pós-Graduação em Inteligência Artificial Aplicada</p>
+<p class="titulo">Relatório Técnico — Clusterização de Clientes e Regras de Associação</p>
+<p class="disciplina">Tópicos 1 — Business Intelligence · Trabalho 2 · Outubro de 2026</p>
+<p class="pessoas"><strong>Professor:</strong> Sirlon Diniz de Carvalho<br><strong>Alunos:</strong> Guilherme Alves Martins e Daniel Flávio de Oliveira</p>
+</header>
 
 # 1. Objetivo
 
